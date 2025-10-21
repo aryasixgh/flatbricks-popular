@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Build output
 node_modules
 dist
 dist-ssr
@@ -22,3 +23,29 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# === FRONTEND & BACKEND SPECIFIC IGNORES ===
+
+# Frontend build artifacts
+/frontend/node_modules
+/frontend/dist
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development
+/frontend/.env.production
+
+# Backend node modules and build files
+/backend/node_modules
+/backend/dist
+/backend/build
+/backend/tsconfig.tsbuildinfo
+
+# Backend environment/config files
+/backend/.env
+/backend/.env.local
+/backend/.env.development
+/backend/.env.production
+
+# Misc configuration backups or logs
+/backend/*.log
+/frontend/*.log
