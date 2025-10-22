@@ -29,9 +29,30 @@ const wpPool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
 app.get("/", (req, res) => {
   res.send("Hello from the backend!");
 });
+
+app.get("/api/properties-popular", async (req, res) => {
+  try {
+    const [visitRows]: any = await pool.query("SELECT DISTINCT propertyid FROM fb_uservisits WHERE createdate > (UNIX_TIMESTAMP(CURDATE() - INTERVAL 7 DAY) * 1000)",
+    )
+
+    const propertyIds = visitRows.map((row: any) => row.propertyid);
+    const [properties] = await wpPool.query(
+      `SELECT * 
+       FROM a8wo_posts 
+       WHERE post_type = 'property' 
+         AND ID IN (?)`,
+      [propertyIds]
+    );
+    res.json(properties);
+  } catch (err) {
+    console.error("Error getting popular properties ", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
 
 app.get('/api/data', async (req, res) => {
   try {
