@@ -36,23 +36,49 @@ app.get("/", (req, res) => {
 
 app.get("/api/properties-popular", async (req, res) => {
   try {
-    const [visitRows]: any = await pool.query("SELECT DISTINCT propertyid FROM fb_uservisits WHERE createdate > (UNIX_TIMESTAMP(CURDATE() - INTERVAL 7 DAY) * 1000)",
-    )
+    // 1️⃣ Query from the fb_uservisits database (analytics)
+    const [visitRows] = await pool.query<RowDataPacket[]>(`
+      SELECT 
+        propertyid, 
+        COUNT(*) AS visit_count
+      FROM fb_uservisits
+      WHERE createdate > (UNIX_TIMESTAMP(CURDATE() - INTERVAL 7 DAY) * 1000)
+      GROUP BY propertyid
+    `);
 
-    const propertyIds = visitRows.map((row: any) => row.propertyid);
-    const [properties] = await wpPool.query(
-      `SELECT * 
-       FROM a8wo_posts 
-       WHERE post_type = 'property' 
-         AND ID IN (?)`,
+    if (visitRows.length === 0) {
+      return res.json([]); // no recent visits → return empty
+    }
+
+    // 2️⃣ Extract property IDs
+    const propertyIds = visitRows.map((row) => row.propertyid);
+
+    // 3️⃣ Query from WordPress DB for those IDs
+    const [propertyRows] = await wpPool.query<RowDataPacket[]>(
+      `SELECT ID, post_title, post_type, post_status, post_date
+       FROM a8wo_posts
+       WHERE post_type = 'property' AND ID IN (?)`,
       [propertyIds]
     );
-    res.json(properties);
+
+    // 4️⃣ Merge both sets of results
+    const visitMap = Object.fromEntries(
+      visitRows.map((v) => [v.propertyid, v.visit_count])
+    );
+
+    const merged = propertyRows.map((p) => ({
+      ...p,
+      visit_count: visitMap[p.ID] || 0,
+      popular: (visitMap[p.ID] || 0) > 0
+    }));
+
+    // 5️⃣ Return combined JSON
+    res.json(merged);
   } catch (err) {
-    console.error("Error getting popular properties ", err);
+    console.error("Error getting popular properties", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
-})
+});
 
 app.get('/api/data', async (req, res) => {
   try {
