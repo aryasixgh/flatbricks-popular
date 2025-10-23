@@ -1,6 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { fetchPopularProperties } from "../utils/apiCalls";
 
 const PropertyList = () => {
+  const [properties, setProperties] = useState<any[]>([]);
+  useEffect(() => {
+    const getPopular = async () => {
+      const popular = await fetchPopularProperties();
+      setProperties(popular); // You can now map over this safely
+    };
+    getPopular();
+  }, []);
+
   return (
     <>
       <div className="bg-white border-1 border-gray-200 rounded-2xl h-auto w-100 p-3">
