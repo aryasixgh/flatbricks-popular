@@ -55,19 +55,28 @@ app.get("/api/properties-popular", async (req, res) => {
 
     // Query from WordPress DB for those IDs
     const [propertyRows] = await wpPool.query<RowDataPacket[]>(
-      `SELECT 
-     p.ID, 
-     p.post_title, 
-     p.post_type, 
-     p.post_status, 
-     p.post_date, 
-     p.post_content,
-     m.meta_value AS post_address
-     FROM a8wo_posts p
-     LEFT JOIN a8wo_postmeta m 
-     ON p.ID = m.post_id AND m.meta_key = '_property_address'
-     WHERE p.post_type = 'property' 
-     AND p.ID IN (?)`,
+    `
+    SELECT 
+      p.ID, 
+      p.post_title, 
+      p.post_type, 
+      p.post_status, 
+      p.post_date, 
+      p.post_content,
+      addr.meta_value AS post_address,
+      beds.meta_value AS post_beds,
+      baths.meta_value AS post_baths
+    FROM a8wo_posts p
+    LEFT JOIN a8wo_postmeta addr 
+      ON p.ID = addr.post_id AND addr.meta_key = '_property_address'
+    LEFT JOIN a8wo_postmeta beds 
+      ON p.ID = beds.post_id AND beds.meta_key = '_property_beds'
+    LEFT JOIN a8wo_postmeta baths 
+      ON p.ID = baths.post_id AND baths.meta_key = '_property_baths'
+    WHERE p.post_type = 'property'
+    AND p.ID IN (?);
+
+    `,
       [propertyIds]
     );
 
