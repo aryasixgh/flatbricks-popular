@@ -6,7 +6,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #ffffff;
+  background-color: #f0f0f0;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,11 +31,24 @@ body {
   min-height: 100vh;
 }
 
+hr {
+  color: #c5c5c5;
+  margin-top: 10;
+  margin-bottom: 10;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
-
+h2 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -50,10 +63,10 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
+/* button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
+} */
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -66,4 +79,33 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/*Custom css*/
+.sub-box {
+  @apply flex flex-col my-5 p-7 bg-white border-1 border-gray-300 w-auto rounded-xl text-left;
+}
+.input-form {
+  @apply h-10 border-1 p-3  border-gray-300 rounded-xl;
+}
+.additional-input-binder {
+  @apply flex flex-col mr-10 mt-3;
+}
+.sub-text {
+  @apply text-gray-400 size-0.5 w-2/3 p-2 mb-5;
+}
+.upload-btn {
+  @apply bg-gray-100 w-fit h-15 border-1 border-gray-300 my-2 px-8;
+}
+.text-btn {
+  @apply text-red-400 bg-transparent w-fit p-0 my-3 hover:border-transparent hover:text-red-500 focus:border-transparent;
+}
+.submit-btn {
+  @apply bg-red-400 text-white p-4 px-10;
+}
+.input-checkbox {
+  @apply bg-white border-8 p-5;
+}
+.label-checkbox {
+  @apply p-2;
 }
