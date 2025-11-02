@@ -1,3 +1,4 @@
+import { useState } from "react";
 const FormPage = () => {
   const additional_row_one: string[] = ["Property ID", "Status", "Label"];
   const additional_row_two: string[] = [
@@ -31,6 +32,8 @@ const FormPage = () => {
     "Window Coverings",
     "Washer",
   ];
+  //State managment
+  const [selectAll, setSelectAll] = useState(false);
   return (
     <>
       <div className="text-black text-left">
@@ -180,13 +183,16 @@ const FormPage = () => {
         </div>
         <div className="sub-box">
           <h3>Amenities</h3>
-          <button className="text-btn">Select / Deselect All</button>
+          <button className="text-btn" onClick={() => setSelectAll(!selectAll)}>
+            Select / Deselect All
+          </button>
           <div className="grid grid-cols-2">
             {amenities_row.map((information, index) => (
               <>
                 <div className="flex flex-row">
                   <input
                     type="checkbox"
+                    checked={selectAll}
                     id={index.toString()}
                     className="input-checkbox"
                   />

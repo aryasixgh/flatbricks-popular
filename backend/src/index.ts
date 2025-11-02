@@ -34,6 +34,16 @@ app.get("/", (req, res) => {
   res.send("Hello from the backend!");
 });
 
+app.post("/api/post-properties", async (req, res): Promise<any> => {
+  try {
+    const { property_title, property_type, property_description, property_id, property_status, 
+      property_rooms ,property_beds, property_baths, property_garages, property_price, property_location, 
+      property_address, property_maplocation, property_featurediamge, property_gallery, property_attachments, } = req.body;
+  }catch(err){
+    console.error("Error Posting properties ", err)
+  }
+})
+
 app.get("/api/properties-popular", async (req, res) => {
   try {
     // Query from the fb_uservisits database (analytics)
