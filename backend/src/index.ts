@@ -54,16 +54,31 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
       _edit_lock, _views_by_date, _recently_viewed, _property_views, _property_views_count,
     };
 
+    console.log("Incoming body:", req.body);
+
     const [maxPostId] = await wpPool.query<RowDataPacket[]>
     ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
 
-    const finalPostId = (maxPostId[0].max) + 1;
+    let finalPostId = (maxPostId[0].max) + 1;
+
+    let isUnique = false;
+
+    while(!isUnique){
+      const [countPostId] = await wpPool.query<RowDataPacket[]>
+        ("SELECT COUNT(post_id) FROM a8wo_postmeta awp WHERE post_id=?", [finalPostId]);
+
+      if(countPostId[0].count === 0){
+        isUnique = true;
+      } else {
+        finalPostId+=1;
+      }
+    } 
 
     const values = Object.entries(properties).map(
       ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]);
 
     await wpPool.query(
-      "INSERT INTO a8wo_postmeta awp (post_id, meta_key, meta_value) VALUES ?",
+      "INSERT INTO a8wo_postmeta (post_id, meta_key, meta_value) VALUES ?",
       [values]
     );
 

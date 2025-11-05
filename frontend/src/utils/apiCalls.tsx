@@ -1,6 +1,10 @@
+import axios from "axios";
+
+const BASE_URL = "http://localhost:4000";
+
 export const fetchPopularProperties = async () => {
   try {
-    const res = await fetch("http://localhost:4000/api/properties-popular", {
+    const res = await fetch(`${BASE_URL}/api/properties-popular`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -18,5 +22,18 @@ export const fetchPopularProperties = async () => {
   } catch (err) {
     console.error("Error fetching popular properties:", err);
     return []; // Return empty array on error so frontend doesn't crash
+  }
+};
+
+export const postProperty = async (propertyData: any) => {
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/post-properties`,
+      propertyData,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return res.data;
+  } catch (err) {
+    console.log("Error posting properties ", err);
   }
 };
