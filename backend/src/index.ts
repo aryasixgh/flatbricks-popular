@@ -35,12 +35,47 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/post-properties", async (req, res): Promise<any> => {
+  console.log("Called succesttful post_props");
   try {
-    const { property_title, property_type, property_description, property_id, property_status, 
-      property_rooms ,property_beds, property_baths, property_garages, property_price, property_location, 
-      property_address, property_maplocation, property_featurediamge, property_gallery, property_attachments, } = req.body;
+    const { _property_title, _property_type, _property_description, _property_property_id, 
+      _property_status, _property_rooms , _property_beds, _property_baths, _property_garages, 
+      _property_price, _property_location, _property_address, _property_map_location, 
+      _property_featured_image_img, _property_gallery_img, _property_attachments_img, _property_post_type,
+      _thumbnail_id, _edit_last, _property_expiry_date, rs_page_bg_color, _edit_lock, _views_by_date,
+      _recently_viewed, _property_views, _property_views_count , 
+    } = req.body;
+
+    const properties = {
+      _property_title, _property_type, _property_description,_property_property_id,
+      _property_status, _property_rooms, _property_beds, _property_baths, _property_garages,
+      _property_price, _property_location, _property_address, _property_map_location, 
+      _property_featured_image_img, _property_gallery_img, _property_attachments_img,
+      _property_post_type, _thumbnail_id, _edit_last, _property_expiry_date, rs_page_bg_color,
+      _edit_lock, _views_by_date, _recently_viewed, _property_views, _property_views_count,
+    };
+
+    const [maxPostId] = await wpPool.query<RowDataPacket[]>
+    ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
+
+    const finalPostId = (maxPostId[0].max) + 1;
+
+    const values = Object.entries(properties).map(
+      ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]);
+
+    await wpPool.query(
+      "INSERT INTO a8wo_postmeta awp (post_id, meta_key, meta_value) VALUES ?",
+      [values]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "New Propery Added succesfully",
+      post_id: finalPostId
+    });
+
   }catch(err){
-    console.error("Error Posting properties ", err)
+    console.error("Error Posting properties ", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 })
 
