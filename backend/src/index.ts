@@ -30,8 +30,14 @@ const wpPool = mysql.createPool({
   queueLimit: 0,
 });
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   res.send("Hello from the backend!");
+  try {
+  const [rows] = await wpPool.query("SELECT 1");
+  console.log("DB connection OK:", rows);
+} catch (err) {
+  console.error("DB test query failed:", err);
+}
 });
 
 app.post("/api/post-properties", async (req, res): Promise<any> => {
@@ -58,15 +64,15 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
 
     const [maxPostId] = await wpPool.query<RowDataPacket[]>
       ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
-
+    console.log("maxPostId raw:", maxPostId);
     let finalPostId = (maxPostId[0].max) + 1;
 
     let isUnique = false;
 
     while (!isUnique) {
       const [countPostId] = await wpPool.query<RowDataPacket[]>
-        ("SELECT COUNT(post_id) FROM a8wo_postmeta awp WHERE post_id=?", [finalPostId]);
-
+        ("SELECT COUNT(post_id) AS count FROM a8wo_postmeta awp WHERE post_id=?", [finalPostId]);
+        console.log("countRows:", countPostId);
       if (countPostId[0].count === 0) {
         isUnique = true;
       } else {
@@ -74,9 +80,10 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
       }
     }
 
+    
     const values = Object.entries(properties).map(
       ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]);
-
+    console.log("Inserting values:", values.length);
     await wpPool.query(
       "INSERT INTO a8wo_postmeta (post_id, meta_key, meta_value) VALUES ?",
       [values]
