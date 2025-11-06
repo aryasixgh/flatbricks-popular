@@ -35,5 +35,6 @@ export const postProperty = async (propertyData: any) => {
     return res.data;
   } catch (err) {
     console.log("Error posting properties ", err);
+    return { success: false, message: "Failed to add property" };
   }
 };

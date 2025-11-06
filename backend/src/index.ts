@@ -37,18 +37,18 @@ app.get("/", (req, res) => {
 app.post("/api/post-properties", async (req, res): Promise<any> => {
   console.log("Called succesttful post_props");
   try {
-    const { _property_title, _property_type, _property_description, _property_property_id, 
-      _property_status, _property_rooms , _property_beds, _property_baths, _property_garages, 
-      _property_price, _property_location, _property_address, _property_map_location, 
+    const { _property_title, _property_type, _property_description, _property_property_id,
+      _property_status, _property_rooms, _property_beds, _property_baths, _property_garages,
+      _property_price, _property_location, _property_address, _property_map_location,
       _property_featured_image_img, _property_gallery_img, _property_attachments_img, _property_post_type,
       _thumbnail_id, _edit_last, _property_expiry_date, rs_page_bg_color, _edit_lock, _views_by_date,
-      _recently_viewed, _property_views, _property_views_count , 
+      _recently_viewed, _property_views, _property_views_count,
     } = req.body;
 
     const properties = {
-      _property_title, _property_type, _property_description,_property_property_id,
+      _property_title, _property_type, _property_description, _property_property_id,
       _property_status, _property_rooms, _property_beds, _property_baths, _property_garages,
-      _property_price, _property_location, _property_address, _property_map_location, 
+      _property_price, _property_location, _property_address, _property_map_location,
       _property_featured_image_img, _property_gallery_img, _property_attachments_img,
       _property_post_type, _thumbnail_id, _edit_last, _property_expiry_date, rs_page_bg_color,
       _edit_lock, _views_by_date, _recently_viewed, _property_views, _property_views_count,
@@ -57,22 +57,22 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
     console.log("Incoming body:", req.body);
 
     const [maxPostId] = await wpPool.query<RowDataPacket[]>
-    ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
+      ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
 
     let finalPostId = (maxPostId[0].max) + 1;
 
     let isUnique = false;
 
-    while(!isUnique){
+    while (!isUnique) {
       const [countPostId] = await wpPool.query<RowDataPacket[]>
         ("SELECT COUNT(post_id) FROM a8wo_postmeta awp WHERE post_id=?", [finalPostId]);
 
-      if(countPostId[0].count === 0){
+      if (countPostId[0].count === 0) {
         isUnique = true;
       } else {
-        finalPostId+=1;
+        finalPostId += 1;
       }
-    } 
+    }
 
     const values = Object.entries(properties).map(
       ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]);
@@ -81,14 +81,14 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
       "INSERT INTO a8wo_postmeta (post_id, meta_key, meta_value) VALUES ?",
       [values]
     );
-
+    console.log("Final Post ID: ",finalPostId);
     res.status(200).json({
       success: true,
       message: "New Propery Added succesfully",
       post_id: finalPostId
     });
 
-  }catch(err){
+  } catch (err) {
     console.error("Error Posting properties ", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -115,7 +115,7 @@ app.get("/api/properties-popular", async (req, res) => {
 
     // Query from WordPress DB for those IDs
     const [propertyRows] = await wpPool.query<RowDataPacket[]>(
-    `
+      `
     SELECT 
       p.ID, 
       p.post_title, 
@@ -162,7 +162,7 @@ app.get("/api/properties-popular", async (req, res) => {
 app.get('/api/data', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM orders');
- 
+
     res.json({ dbData: rows, staticData: ['one', 'two', 'three'] });
   } catch (err) {
     res.status(500).json({ error: err });
@@ -172,33 +172,33 @@ app.get('/api/data', async (req, res) => {
 app.get('/buildings', async (req, res) => {
   const page = parseInt(String(req.query.page)) || 1;
   const limit = parseInt(String(req.query.limit)) || 10;
-  
+
   const offset = (page - 1) * limit;
 
-try {
-  const [rows] = await pool.query(
-    'SELECT name, location, seen, modifieddate FROM fb_buildings LIMIT ? OFFSET ?',
-    [limit, offset]
-  );
+  try {
+    const [rows] = await pool.query(
+      'SELECT name, location, seen, modifieddate FROM fb_buildings LIMIT ? OFFSET ?',
+      [limit, offset]
+    );
 
-  const [countResult] = await pool.query('SELECT COUNT(*) AS total FROM fb_buildings')as any[];
-  const total = countResult[0].total;
-  const totalPages = Math.ceil(total / limit);
+    const [countResult] = await pool.query('SELECT COUNT(*) AS total FROM fb_buildings') as any[];
+    const total = countResult[0].total;
+    const totalPages = Math.ceil(total / limit);
 
-  res.json({
-    data: rows,
-    currentPage: page,
-    totalPages,
-    totalItems: total
-  });
-} catch (err) {
-  res.status(500).json({ error: err });
-}
+    res.json({
+      data: rows,
+      currentPage: page,
+      totalPages,
+      totalItems: total
+    });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
 
 });
 
 app.post('/update-approval', async (req, res): Promise<any> => {
- const { id, status } = req.body;
+  const { id, status } = req.body;
 
   if (!id || typeof status !== 'number') {
     return res.status(400).json({ error: 'ID and status are required' });
@@ -222,8 +222,8 @@ app.post('/update-approval', async (req, res): Promise<any> => {
 
 app.post("/api/fb_callbackrequests", async (req, res): Promise<any> => {
   try {
-    const { name, phone, email, date, propertyId, propertyName,message} = req.body;
-    let epochtime=Math.floor (new Date(date).getTime());
+    const { name, phone, email, date, propertyId, propertyName, message } = req.body;
+    let epochtime = Math.floor(new Date(date).getTime());
     if (!name || !phone || !email || !propertyId) {
       console.log(req.body);
       return res.status(400).json({ error: "Missing required fields" });
@@ -245,7 +245,7 @@ app.post("/api/fb_callbackrequests", async (req, res): Promise<any> => {
       message
     ]);
 
-    res.status(201).json({success: true, message: "User Visit CallBack ", result});
+    res.status(201).json({ success: true, message: "User Visit CallBack ", result });
   } catch (err) {
     console.error("Error inserting callback request:", err);
     res.status(500).json({ error: "Server error" });
@@ -256,7 +256,7 @@ app.post("/api/fb_callbackrequests", async (req, res): Promise<any> => {
 
 app.get("/api/wp_post/:id", async (req, res): Promise<any> => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
     console.log(id);
     const [rows] = await wpPool.query<RowDataPacket[]>(
       `
@@ -281,11 +281,11 @@ app.get("/api/wp_post/:id", async (req, res): Promise<any> => {
 
 app.post("/api/property-clicks", async (req, res) => {
   try {
-    const { propertyId, propertyName, clickedAt,userId,username } = req.body;
+    const { propertyId, propertyName, clickedAt, userId, username } = req.body;
 
     await pool.query(
       "INSERT INTO fb_uservisits (propertyid, propertyname, createdate,peopleid,peoplename) VALUES (?, ?, ?,?,?)",
-      [propertyId, propertyName, clickedAt,userId,username]
+      [propertyId, propertyName, clickedAt, userId, username]
     );
 
     res.json({ success: true });
@@ -299,7 +299,7 @@ app.get("/api/property-views/:propertyId", async (req, res) => {
   try {
     const { propertyId } = req.params;
 
-      const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       "SELECT COUNT(*) AS views FROM fb_uservisits WHERE propertyid = ?",
       [propertyId]
     );
@@ -354,7 +354,7 @@ app.get("/api/flats/ownership-summary", async (req, res) => {
       FROM fb_flats
     `);
 
-     res.json(rows);
+    res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database query failed" });
@@ -378,6 +378,6 @@ app.get("/api/flats/owned-availability", async (req, res) => {
   }
 });
 
- app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 }); 
