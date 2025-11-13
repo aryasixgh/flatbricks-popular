@@ -41,15 +41,34 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/api/post-properties", async (req, res): Promise<any> => {
-  console.log("Called succesttful post_props");
+  console.log("Called successful post_props");
   try {
-    const { _property_title, _property_type, _property_description, _property_property_id,
+    const {
+      _property_title, _property_type, _property_description, _property_property_id,
       _property_status, _property_rooms, _property_beds, _property_baths, _property_garages,
       _property_price, _property_location, _property_address, _property_map_location,
       _property_featured_image_img, _property_gallery_img, _property_attachments_img, _property_post_type,
       _thumbnail_id, _edit_last, _property_expiry_date, rs_page_bg_color, _edit_lock, _views_by_date,
       _recently_viewed, _property_views, _property_views_count,
     } = req.body;
+
+    console.log("Incoming body:", req.body);
+
+    const [postResult] = await wpPool.query<any>(
+      `INSERT INTO a8wo_posts 
+        (post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt, post_status, comment_status, ping_status, post_name, to_ping, pinged, post_modified, post_modified_gmt, post_content_filtered, post_parent, guid, menu_order, post_type, post_mime_type, comment_count)
+      VALUES (?, NOW(), UTC_TIMESTAMP(), ?, ?, '', 'publish', 'closed', 'closed', ?, '', '', NOW(), UTC_TIMESTAMP(), '', 0, '', 0, ?, '', 0)`,
+      [
+        1, // post_author
+        _property_description || '',
+        _property_title || 'Untitled Property',
+        (_property_title || 'property').toLowerCase().replace(/\s+/g, '-'), // post_name/slug
+        'property', // post_type
+      ]
+    );
+
+    const finalPostId = postResult.insertId;
+    console.log("Inserted post ID:", finalPostId);
 
     const properties = {
       _property_title, _property_type, _property_description, _property_property_id,
@@ -60,38 +79,22 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
       _edit_lock, _views_by_date, _recently_viewed, _property_views, _property_views_count,
     };
 
-    console.log("Incoming body:", req.body);
+    const values = Object.entries(properties).map(
+      ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]
+    );
 
-    const [maxPostId] = await wpPool.query<RowDataPacket[]>
-      ("SELECT MAX(post_id) AS max FROM a8wo_postmeta awp WHERE meta_key = '_property_title'");
-    console.log("maxPostId raw:", maxPostId);
-    let finalPostId = (maxPostId[0].max) + 1;
+    console.log("Inserting meta values:", values.length);
 
-    let isUnique = false;
-
-    while (!isUnique) {
-      const [countPostId] = await wpPool.query<RowDataPacket[]>
-        ("SELECT COUNT(post_id) AS count FROM a8wo_postmeta awp WHERE post_id=?", [finalPostId]);
-        console.log("countRows:", countPostId);
-      if (countPostId[0].count === 0) {
-        isUnique = true;
-      } else {
-        finalPostId += 1;
-      }
+    if (values.length > 0) {
+      await wpPool.query(
+        "INSERT INTO a8wo_postmeta (post_id, meta_key, meta_value) VALUES ?",
+        [values]
+      );
     }
 
-    
-    const values = Object.entries(properties).map(
-      ([meta_key, meta_value]) => [finalPostId, meta_key, meta_value]);
-    console.log("Inserting values:", values.length);
-    await wpPool.query(
-      "INSERT INTO a8wo_postmeta (post_id, meta_key, meta_value) VALUES ?",
-      [values]
-    );
-    console.log("Final Post ID: ",finalPostId);
     res.status(200).json({
       success: true,
-      message: "New Propery Added succesfully",
+      message: "New Property Added successfully",
       post_id: finalPostId
     });
 
@@ -99,7 +102,8 @@ app.post("/api/post-properties", async (req, res): Promise<any> => {
     console.error("Error Posting properties ", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
-})
+});
+
 
 app.get("/api/properties-popular", async (req, res) => {
   try {
